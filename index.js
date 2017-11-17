@@ -7,29 +7,17 @@ const PORT = process.env.GOOGLEDOCIMAGES_PORT || 8000;
 
 const app = express();
 
-let simpleCache = {};
-const hash = crypto.createHash('sha256');
-
 app.get('/', (res, req) => {
   const documentUrl = res.query.url;
-  const urlHash = crypto
-    .createHash('sha256')
-    .update(documentUrl)
-    .digest('hex');
 
-  if (simpleCache[urlHash]) {
-    req.send(simpleCache[urlHash]);
-  } else {
-    request(documentUrl)
-      .then(res => {
-        const processedDocument = processDocument(documentUrl, res);
-        simpleCache[urlHash] = processedDocument;
-        req.send(processedDocument);
-      })
-      .catch(reason => {
-        req.status(reason.statusCode).send(reason.message);
-      });
-  }
+  request(documentUrl)
+    .then(res => {
+      const processedDocument = processDocument(documentUrl, res);
+      req.send(processedDocument);
+    })
+    .catch(reason => {
+      req.status(reason.statusCode).send(reason.message);
+    });
 });
 
 function processDocument(documentUrl, body) {
@@ -67,13 +55,13 @@ function convertImageLink(source, imageUrl, params) {
 
   return {
     source,
+    //'(//localhost:3333/?url=' +
     target:
-      //'(//localhost:3333/?url=' +
-        '(//resize.sonofmaw.co.uk/?url=' +
-        imageUrl +
-        (imageWidthParam ||
-      '') + (imageHeightParam ||
-      '') + ')'
+      '(//resize.sonofmaw.co.uk/?url=' +
+      imageUrl +
+      (imageWidthParam || '') +
+      (imageHeightParam || '') +
+      ')'
   };
 }
 
