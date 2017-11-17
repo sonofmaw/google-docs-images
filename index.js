@@ -27,7 +27,7 @@ function processDocument(documentUrl, body) {
   while ((staticLinkMatch = staticLinkRe.exec(body)) !== null) {
     body = body.replace(
       staticLinkMatch[1],
-      'http://docs.google.com' + staticLinkMatch[1]
+      'https://docs.google.com' + staticLinkMatch[1]
     );
   }
 
