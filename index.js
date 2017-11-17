@@ -43,6 +43,13 @@ function processDocument(documentUrl, body) {
     body = body.replace(conversionResult.source, conversionResult.target);
   }
 
+  // Add a signature
+
+  body = body.replace(
+    /(Published by (?:[\s\S]+?))<\/span>/,
+    '$1 fixed by SonOfMaw </span>'
+  );
+
   return body;
 }
 
