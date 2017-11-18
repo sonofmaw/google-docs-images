@@ -23,22 +23,23 @@ function cleanCache() {
 
 app.use(require('express-status-monitor')());
 
-app.get('/', (res, req) => {
-  const documentUrl = res.query.url;
+app.get('/', (req, res) => {
+  const documentUrl = req.query.url;
   const urlHash = crypto
     .createHash('sha256')
     .update(documentUrl)
     .digest('hex');
 
   if (simpleCache[urlHash]) {
-    req.send(simpleCache[urlHash].content);
+    res.send(simpleCache[urlHash].content);
 
     cleanCache();
   } else {
     request(documentUrl)
-      .then(res => {
-        const processedDocument = processDocument(documentUrl, res);
-        req.send(processedDocument);
+      .then(document => {
+        const processedDocument = processDocument(documentUrl, document);
+        res.set('Cache-Control', 'max-age=300');
+        res.send(processedDocument);
 
         simpleCache[urlHash] = {
           timestamp: Date.now(),
@@ -46,7 +47,7 @@ app.get('/', (res, req) => {
         };
       })
       .catch(reason => {
-        req.status(reason.statusCode).send(reason.message);
+        res.status(reason.statusCode).send(reason.message);
       });
   }
 });
