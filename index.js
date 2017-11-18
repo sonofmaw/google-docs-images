@@ -42,7 +42,7 @@ app.get('/', (res, req) => {
 
         simpleCache[urlHash] = {
           timestamp: Date.now(),
-          content: processDocument
+          content: processedDocument
         };
       })
       .catch(reason => {
