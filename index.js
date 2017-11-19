@@ -1,6 +1,7 @@
 const express = require('express');
 const request = require('request-promise-native');
 const crypto = require('crypto');
+const zlib = require('zlib');
 const uniq = require('lodash/uniq');
 
 const PORT = process.env.GOOGLEDOCIMAGES_PORT || 8000;
@@ -31,21 +32,25 @@ app.get('/', (req, res) => {
     .digest('hex');
 
   if (simpleCache[urlHash]) {
-    res.set('Cache-Control', 'max-age=300');
-    res.send(simpleCache[urlHash].content);
-
+    zlib.gunzip(simpleCache[urlHash].content, (err, document) => {
+      res.set('Cache-Control', 'max-age=300');
+      res.send(document.toString());
+    });
     cleanCache();
   } else {
     request(documentUrl)
       .then(document => {
         const processedDocument = processDocument(documentUrl, document);
-        res.set('Cache-Control', 'max-age=300');
-        res.send(processedDocument);
 
-        simpleCache[urlHash] = {
-          timestamp: Date.now(),
-          content: processedDocument
-        };
+        zlib.gzip(processedDocument, (err, compressedDocument) => {
+          simpleCache[urlHash] = {
+            timestamp: Date.now(),
+            content: compressedDocument
+          };
+
+          res.set('Cache-Control', 'max-age=300');
+          res.send(processedDocument);
+        });
       })
       .catch(reason => {
         res.status(reason.statusCode).send(reason.message);
