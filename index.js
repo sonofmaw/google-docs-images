@@ -34,7 +34,7 @@ app.get('/', (req, res) => {
   if (simpleCache[urlHash]) {
     zlib.gunzip(simpleCache[urlHash].content, (err, document) => {
       res.set('Cache-Control', 'max-age=300');
-      res.send(document);
+      res.send(document.toString());
     });
     cleanCache();
   } else {
