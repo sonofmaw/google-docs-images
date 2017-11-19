@@ -31,6 +31,7 @@ app.get('/', (req, res) => {
     .digest('hex');
 
   if (simpleCache[urlHash]) {
+    res.set('Cache-Control', 'max-age=300');
     res.send(simpleCache[urlHash].content);
 
     cleanCache();
