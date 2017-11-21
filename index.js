@@ -95,6 +95,7 @@ function processDocument(documentUrl, body) {
 function convertImageLink(source, imageUrl, params) {
   let imageWidth = /resize_w=([0-9]+)/.exec(params);
   let imageHeight = /resize_h=([0-9]+)/.exec(params);
+  let keepRatio = /no_expand=1/.test(params);
 
   let imageWidthParam = imageWidth && '&width=' + imageWidth[1];
   let imageHeightParam = imageHeight && '&height=' + imageHeight[1];
@@ -104,6 +105,7 @@ function convertImageLink(source, imageUrl, params) {
     imageUrl +
     (imageWidthParam || '') +
     (imageHeightParam || '') +
+    (keepRatio ? '&keepRatio=1' : '') +
     ')'
   );
 }
