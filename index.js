@@ -4,6 +4,8 @@ const crypto = require('crypto');
 const zlib = require('zlib');
 const uniq = require('lodash/uniq');
 
+require('log-timestamp');
+
 const PORT = process.env.GOOGLEDOCIMAGES_PORT || 8000;
 
 const app = express();
@@ -26,7 +28,7 @@ app.use(require('express-status-monitor')());
 
 app.get('/', (req, res) => {
   const documentUrl = req.query.url;
-  const urlHash = crypto
+  /*const urlHash = crypto
     .createHash('sha256')
     .update(documentUrl)
     .digest('hex');
@@ -37,20 +39,21 @@ app.get('/', (req, res) => {
       res.send(document.toString());
     });
     cleanCache();
-  } else {
+  } else*/ {
     request(documentUrl)
       .then(document => {
         const processedDocument = processDocument(documentUrl, document);
 
-        zlib.gzip(processedDocument, (err, compressedDocument) => {
+        /*zlib.gzip(processedDocument, (err, compressedDocument) => {
           simpleCache[urlHash] = {
             timestamp: Date.now(),
             content: compressedDocument
           };
-
-          res.set('Cache-Control', 'max-age=300');
-          res.send(processedDocument);
-        });
+*/
+        console.log('Processed document:', documentUrl);
+        res.set('Cache-Control', 'max-age=300');
+        res.send(processedDocument);
+        //      });
       })
       .catch(reason => {
         res.status(reason.statusCode).send(reason.message);
