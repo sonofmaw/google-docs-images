@@ -85,8 +85,10 @@ function processDocument(documentUrl, body) {
     body = body.replace(source, conversionResult);
   }
 
-  // Add a signature
+  // Process DSQ conditional formatting bugs
+  body = body.replace(/color:#000000;">DSQ/g, 'color:#ffffff;">DSQ');
 
+  // Add a signature
   body = body.replace(
     /(Published by (?:[\s\S]+?))<\/span>/,
     '$1 fixed by SonOfMaw </span>'
