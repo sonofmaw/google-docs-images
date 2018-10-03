@@ -26,8 +26,8 @@ function cleanCache() {
 
 app.use(require('express-status-monitor')());
 
-app.get('/', (req, res) => {
-  const documentUrl = req.query.url;
+app.get('*', (req, res) => {
+  const documentUrl = req.originalUrl;
   /*const urlHash = crypto
     .createHash('sha256')
     .update(documentUrl)
@@ -40,7 +40,7 @@ app.get('/', (req, res) => {
     });
     cleanCache();
   } else*/ {
-    request(documentUrl)
+    request(`https://docs.google.com/${documentUrl}`)
       .then(document => {
         const processedDocument = processDocument(documentUrl, document);
 
@@ -73,7 +73,7 @@ function processDocument(documentUrl, body) {
   }
 
   // Process image links
-  const imageLinkRe = /\(\/\/images-docs-opensocial\.googleusercontent\.com\/gadgets\/proxy\?url=(.*?)&(.*?)\)/;
+  const imageLinkRe = /\(\/\/images-docs-opensocial\.googleusercontent\.com\/gadgets\/proxy\?url=https?:\/\/(.*?)&(.*?)\)/;
   let imageLinkMatch;
   while ((imageLinkMatch = imageLinkRe.exec(body)) !== null) {
     const source = imageLinkMatch[0];
@@ -102,17 +102,15 @@ function convertImageLink(source, imageUrl, params) {
   let imageHeight = /resize_h=([0-9]+)/.exec(params);
   let keepRatio = /no_expand=1/.test(params);
 
-  let imageWidthParam = imageWidth && '&width=' + imageWidth[1];
-  let imageHeightParam = imageHeight && '&height=' + imageHeight[1];
+  let query = [];
 
-  return (
-    '(//resize.sonofmaw.co.uk/?url=' +
-    imageUrl +
-    (imageWidthParam || '') +
-    (imageHeightParam || '') +
-    (keepRatio ? '&keepRatio=1' : '') +
-    ')'
-  );
+  imageWidth && query.push('width=' + imageWidth[1]);
+  imageHeight && query.push('height=' + imageHeight[1]);
+  keepRatio && query.push('keepRatio=1');
+
+  return `(//resize.sonofmaw.com/${imageUrl.replace(/\./g, '$')}?${query.join(
+    '&'
+  )})`;
 }
 
 app.listen(PORT, () => console.log('Listening on port', PORT));
