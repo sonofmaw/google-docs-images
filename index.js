@@ -85,8 +85,8 @@ function processDocument(documentUrl, body) {
     body = body.replace(source, conversionResult);
   }
 
-  // Process DSQ conditional formatting bugs
-  body = body.replace(/color:#000000;">DSQ/g, 'color:#ffffff;">DSQ');
+  // Process DSQ/DNS/DNF conditional formatting bugs
+  body = body.replace(/color:#000000;">(DSQ|DNS|DNF)/g, 'color:#ffffff;">$1');
 
   // Add a signature
   body = body.replace(
