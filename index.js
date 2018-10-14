@@ -26,64 +26,32 @@ function cleanCache() {
 
 app.use(require('express-status-monitor')());
 
-app.get('*', (req, res) => {
+app.get('*', async (req, res) => {
   const documentUrl = req.originalUrl;
-  /*const urlHash = crypto
-    .createHash('sha256')
-    .update(documentUrl)
-    .digest('hex');
 
-  if (simpleCache[urlHash]) {
-    zlib.gunzip(simpleCache[urlHash].content, (err, document) => {
-      res.set('Cache-Control', 'max-age=300');
-      res.send(document.toString());
-    });
-    cleanCache();
-  } else*/ {
-    request(`https://docs.google.com/${documentUrl}`)
-      .then(document => {
-        const processedDocument = processDocument(documentUrl, document);
+  try {
+    const document = await request(`https://docs.google.com/${documentUrl}`);
+    console.time('Processed document: ' + documentUrl);
+    const processedDocument = processDocument(documentUrl, document);
 
-        /*zlib.gzip(processedDocument, (err, compressedDocument) => {
-          simpleCache[urlHash] = {
-            timestamp: Date.now(),
-            content: compressedDocument
-          };
-*/
-        console.log('Processed document:', documentUrl);
-        res.set('Cache-Control', 'max-age=300');
-        res.send(processedDocument);
-        //      });
-      })
-      .catch(reason => {
-        res.status(reason.statusCode).send(reason.message);
-      });
+    console.timeEnd('Processed document: ' + documentUrl);
+    res.set('Cache-Control', 'max-age=300');
+    res.send(processedDocument);
+  } catch (reason) {
+    res.status(reason.statusCode).send(reason.message);
   }
 });
 
 function processDocument(documentUrl, body) {
   // Process static relative links
-  const staticLinkRe = /(?:href|src)='(.*?)'/g;
-  let staticLinkMatch;
-  while ((staticLinkMatch = staticLinkRe.exec(body)) !== null) {
-    body = body.replace(
-      staticLinkMatch[1],
-      'https://docs.google.com' + staticLinkMatch[1]
-    );
-  }
+  body = body.replace(/(href='|src=')(.*?)'/g, "$1https://docs.google.com$2'");
 
   // Process image links
-  const imageLinkRe = /\(\/\/images-docs-opensocial\.googleusercontent\.com\/gadgets\/proxy\?url=(https?:\/\/.*?)&(.*?)\)/;
-  let imageLinkMatch;
-  while ((imageLinkMatch = imageLinkRe.exec(body)) !== null) {
-    const source = imageLinkMatch[0];
-    const conversionResult = convertImageLink(
-      source,
-      imageLinkMatch[1],
-      imageLinkMatch[2]
-    );
-    body = body.replace(source, conversionResult);
-  }
+  body = body.replace(
+    /\(\/\/images-docs-opensocial\.googleusercontent\.com\/gadgets\/proxy\?url=(https?:\/\/.*?)&(.*?)\)/g,
+    (source, imageUrl, parameters) =>
+      convertImageLink(source, imageUrl, parameters)
+  );
 
   // Process DSQ/DNS/DNF conditional formatting bugs
   body = body.replace(/color:#000000;">(DSQ|DNS|DNF)/g, 'color:#ffffff;">$1');
