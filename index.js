@@ -73,7 +73,7 @@ function processDocument(documentUrl, body) {
   }
 
   // Process image links
-  const imageLinkRe = /\(\/\/images-docs-opensocial\.googleusercontent\.com\/gadgets\/proxy\?url=https?:\/\/(.*?)&(.*?)\)/;
+  const imageLinkRe = /\(\/\/images-docs-opensocial\.googleusercontent\.com\/gadgets\/proxy\?url=(https?:\/\/.*?)&(.*?)\)/;
   let imageLinkMatch;
   while ((imageLinkMatch = imageLinkRe.exec(body)) !== null) {
     const source = imageLinkMatch[0];
@@ -108,9 +108,9 @@ function convertImageLink(source, imageUrl, params) {
   imageHeight && query.push('height=' + imageHeight[1]);
   keepRatio && query.push('keepRatio=1');
 
-  return `(//resize.sonofmaw.com/${imageUrl.replace(/\./g, '$')}?${query.join(
-    '&'
-  )})`;
+  return `(//resize.sonofmaw.com/${Buffer.from(imageUrl).toString(
+    'base64'
+  )}?${query.join('&')})`;
 }
 
 app.listen(PORT, () => console.log('Listening on port', PORT));

@@ -12,10 +12,14 @@
     "express": "^4.16.2",
     "express-status-monitor": "^1.0.1",
     "lodash": "^4.17.4",
+    "log-timestamp": "^0.1.2",
     "request": "^2.83.0",
     "request-promise-native": "^1.0.5"
   },
   "prettier": {
     "singleQuote": true
+  },
+  "devDependencies": {
+    "@types/node": "^10.11.7"
   }
 }
